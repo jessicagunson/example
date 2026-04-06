@@ -1,0 +1,301 @@
+---
+title: "Example"
+output: html_document
+date: "2026-03-27"
+---
+# Setup
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE
+)
+```
+
+```{r Packages}
+if (!require("pacman")) install.packages("pacman")
+
+pacman::p_load(gt, lmerTest, data.table, tidyverse, ggrepel, here, modelsummary, fs, broom.mixed)
+```
+
+```{r helper functions}
+# helper that writes your generated results into .tex docs (estimate = x; sd = y; p = z)
+  write_tex <- function(filename, text) {
+    writeLines(text, con = path(res_dir, filename))
+  }
+
+
+# helpers to get results into proper format
+  fmt_num <- function(x, digits = 2) {
+    formatC(x, format = "f", digits = digits)
+  }
+
+  fmt_p <- function(p) {
+    if (is.na(p)) return("NA")
+    if (p < 0.001) return("p < 0.001")
+    paste0("$p = ", formatC(p, format = "f", digits = 3), "$")
+  }
+
+  fmt_beta_se_p <- function(beta, se, p, digits = 2) {
+    paste0(
+      "$(\\beta = ", fmt_num(beta, digits),
+      ",\\ \\mathrm{SE} = ", fmt_num(se, digits),
+      ",\\ ", fmt_p(p), ")$"
+    )
+  }
+  
+  format_p_stars <- function(p) {
+  stars <- case_when(
+    p < 0.001 ~ "***",
+    p < 0.01  ~ "**",
+    p < 0.05  ~ "*",
+    TRUE ~ ""
+  )
+      p_lab <- case_when(
+        p < 0.001 ~ "<0.001",
+        TRUE ~ sprintf("%.3f", p)
+      )
+      
+      paste0(p_lab, stars)
+    }
+  
+  fmt_ci <- function(low, high, digits = 2) {
+  paste0("[", fmt_num(low, digits), ",\\ ", fmt_num(high, digits), "]")
+  }
+
+  latex_f <- function(f, df1, df2, p, digits = 2) {
+    paste0(
+      "$F(",
+      formatC(df1, format = "f", digits = 1), ",\\ ",
+      formatC(df2, format = "f", digits = 1), ") = ",
+      formatC(f, format = "f", digits = digits), ",\\ ",
+      if (p < 0.001) "$p < 0.001$" else paste0("$p = ", formatC(p, format
+      = "f", digits = 3), "$")
+    )
+  }
+
+  latex_term <- function(model, term, digits = 2) {
+    coefs <- summary(model)$coefficients
+  
+    beta <- coefs[term, "Estimate"]
+    se   <- coefs[term, "Std. Error"]
+    p    <- coefs[term, "Pr(>|t|)"]
+  
+    paste0(
+      "$(\\beta = ", formatC(beta, format = "f", digits = digits),
+      ",\\ \\mathrm{SE} = ", formatC(se, format = "f", digits = digits),
+      ",\\ ",
+      if (p < 0.001) "$p < 0.001$" else paste0("$p = ", formatC(p, format
+      = "f", digits = 3), "$"), ")$"
+    )
+  }
+
+
+# creates model tables 
+make_model_gt <- function(model,
+                          coef_map,
+                          title_text = "",
+                          source_note_text = "",
+                          estimate_label = md("&beta;")) {
+
+    tab_df <- tidy(model, effects = "fixed") %>%
+      mutate(
+        sig = p.value < 0.05,
+        `p value` = format_p_stars(p.value),
+        Term = recode(term, !!!coef_map)
+      ) %>%
+      transmute(
+        Term,
+        Estimate = estimate,
+        `Std. Error` = std.error,
+        df = df,
+        `t value` = statistic,
+        `p value`,
+        sig
+      )
+  
+    gt_tbl <- tab_df %>%
+      gt() %>%
+      fmt_number(
+        columns = c(Estimate, `Std. Error`, df, `t value`),
+        decimals = 2
+      ) %>%
+      cols_label(
+        Term = "Term",
+        Estimate = estimate_label,
+        `Std. Error` = "SE",
+        df = "df",
+        `t value` = "t",
+        `p value` = "p"
+      ) %>%
+      cols_align(
+        align = "left",
+        columns = Term
+      ) %>%
+      cols_align(
+        align = "right",
+        columns = c(Estimate, `Std. Error`, df, `t value`, `p value`)
+      ) %>%
+      cols_width(
+        Term ~ px(170),
+        Estimate ~ px(55),
+        `Std. Error` ~ px(55),
+        df ~ px(60),
+        `t value` ~ px(55),
+        `p value` ~ px(65)
+      ) %>%
+      tab_style(
+        style = cell_text(weight = "bold"),
+        locations = cells_body(columns = `p value`, rows = sig)
+      ) %>%
+      cols_hide(columns = sig) %>%
+      tab_options(
+        table.width = px(520),
+        container.width = px(520),
+        table.font.size = px(10.5),
+        data_row.padding = px(1),
+        column_labels.padding = px(1),
+        column_labels.font.weight = "bold"
+      )
+  
+    if (nzchar(title_text)) {
+      gt_tbl <- gt_tbl %>%
+        tab_header(title = md(glue("**{title_text}**")))
+    }
+  
+    if (nzchar(source_note_text)) {
+      gt_tbl <- gt_tbl %>%
+        tab_source_note(source_note = md(source_note_text))
+    }
+  
+    gt_tbl
+  }
+```
+
+# Create Directories
+```{r directories}
+# i run this from an RProject so my root directory is my RProject folder with all my subfolders and files in it. Then i create a 'dissertation' folder that contains only the files i need for latex
+
+
+# this is where you keep all of your generated results and latex documents (.tex), figures, tables, and zotero references.bib 
+  diss_dir <- path_expand("~/Documents/example")
+
+# subdirectories to keep everything organized
+  fig_dir <- path(diss_dir, "figures", "example")
+  tab_dir <- path(diss_dir, "tables", "example")
+  res_dir <- path(diss_dir, "results", "example")
+
+# for supplementary figures and tables
+  supp_fig_dir <- path(fig_dir, "supp")
+  supp_tab_dir <- path(tab_dir, "supp")
+
+# create directories if they don't exist
+  dir_create(diss_dir, recurse = TRUE)
+  dir_create(fig_dir, recurse = TRUE)
+  dir_create(tab_dir, recurse = TRUE)
+  dir_create(res_dir, recurse = TRUE)
+  dir_create(supp_fig_dir, recurse = TRUE)
+  dir_create(supp_tab_dir, recurse = TRUE)
+```  
+
+# Load Data
+```{r data}
+# check here() to find your current directory
+# assumes you have a folder in the root directory called 'data' with a file called example.csv inside that folder
+df_example <- fread(here("data", "example.csv"))
+```
+
+# Figure & Table outputs
+```{r model}
+model <- lmer(
+  chromatic_intensity ~ rank_prop * ageClass + season + group + (1 | id),
+  data = df_example
+)
+
+model_anova <- anova(model)
+model_anova
+```
+
+```{r generate results}
+# name your variables nicely
+names(fixef(model))
+coef_map <- c(
+  "(Intercept)" = "Intercept",
+  "ageClasssenior" = "Senior (vs adult)",
+  "seasonnonconceptive" = "Non-conceptive season",
+  "group" = "Group 7 (vs group 1)",
+  "rank_prop" = "Rank",
+  "rank_prop:ageClasssenior" = "Rank x age class"
+)
+
+# Extract rows from your model, just pulling season as an example
+season_row     <- model_anova["season", ]
+
+# put results in latex format
+season_f <- latex_f(
+  f   = as.numeric(season_row["F value"]),
+  df1 = as.numeric(season_row["NumDF"]),
+  df2 = as.numeric(season_row["DenDF"]),
+  p   = as.numeric(season_row["Pr(>F)"])
+)
+
+# generate .tex file that can be input directly into your latex document
+write_tex("season_f.tex", season_f)
+```
+
+```{r tidying}
+# some tidying specific to the example dataframe 
+age_ns <- df_example %>%
+  count(ageClass)
+
+age_labels <- setNames(
+  paste0(age_ns$ageClass, "\n(n=", age_ns$n, ")"),
+  age_ns$ageClass
+)
+```
+
+```{r table}
+example_table <- make_model_gt(
+  model = model,
+  coef_map = coef_map,
+  title_text = "",
+  source_note_text = "Significance codes: *** p < 0.001, ** p < 0.01, * p < 0.05.*"
+)
+
+example_table 
+
+gtsave(example_table, file.path(tab_dir, "table_1.png"))
+```
+
+```{r figure}
+example_figure <- ggplot(df_example, aes(ageClass, chromatic_intensity)) +
+  geom_jitter(aes(color = ageClass),
+              width = 0.12,
+              alpha = 0.7,
+              size = 3) +
+  stat_summary(fun = mean,
+               geom = "point",
+               size = 4,
+               color = "black") +
+  stat_summary(fun.data = mean_cl_boot,
+               geom = "errorbar",
+               width = 0.18,
+               color = "black") +
+  scale_x_discrete(labels = age_labels) +
+  theme_classic() +
+  labs(
+    x = "Age class",
+    y = "Chromatic intensity"
+  ) +
+  guides(color = "none")
+
+example_figure
+
+ggsave(
+  filename = file.path(fig_dir, "figure_1.png"),
+  plot = example_figure,
+  width = 6.5,
+  height = 4.5,
+  dpi = 800,
+)
+```
