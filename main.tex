@@ -1,0 +1,105 @@
+% NYU formatting guidelines
+\documentclass[12pt,twoside,openright,letterpaper]{report}
+
+% packages & helper commands
+\input{preamble.tex}
+
+% document starts here
+\begin{document}
+
+\begin{titlepage}
+\thispagestyle{empty}
+\begin{center}
+\vspace*{1in}
+{\Large \thesistitle \par}
+\vspace{0.5in}
+by\par
+\vspace{0.5in}
+\thesisauthor\par
+\vfill
+A dissertation submitted in partial fulfillment\\
+of the requirements for the degree of\\
+Doctor of Philosophy\\
+Department of \thesisdept\\
+New York University\\
+\gradmonth, \gradyear
+\end{center}
+\vfill
+\noindent\makebox[\textwidth]{\hfill\makebox[2.5in]{\hrulefill}}\\
+\makebox[\textwidth]{\hfill\makebox[2.5in]{\hfill\thesisadvisor}}
+\end{titlepage}
+
+\pagenumbering{roman}
+
+\clearpage
+\begin{center}
+{\Large\mdseries\MakeUppercase{Dedication}}
+\end{center}
+\addcontentsline{toc}{chapter}{DEDICATION}
+\vspace{2cm}
+
+Your dedication text.
+
+\clearpage
+\begin{center}
+{\Large\mdseries\MakeUppercase{Acknowledgements}}
+\end{center}
+\addcontentsline{toc}{chapter}{ACKNOWLEDGEMENTS}
+\vspace{2cm}
+
+Your acknowledgements text.
+
+\clearpage
+\begin{center}
+{\Large\mdseries\MakeUppercase{Abstract}}
+\end{center}
+\addcontentsline{toc}{chapter}{ABSTRACT}
+\vspace{2cm}
+
+Your abstract text.
+
+\clearpage
+\addcontentsline{toc}{chapter}{LIST OF TABLES}
+\begingroup
+\setstretch{1.0}
+\customlistoftables
+\endgroup
+
+\clearpage
+\addcontentsline{toc}{chapter}{LIST OF FIGURES}
+\begingroup
+\setstretch{1.0}
+\customlistoffigures
+\endgroup
+
+\clearpage
+\begin{center}
+{\Large\bfseries\MakeUppercase{List of Appendices}}
+\end{center}
+\addcontentsline{toc}{chapter}{LIST OF APPENDICES}
+\vspace{1cm}
+
+\clearpage
+\begingroup
+\setstretch{1.0}
+\customtableofcontents
+\endgroup
+
+% Chapters start here
+\pagenumbering{arabic}
+
+\titleformat{\chapter}[display]
+  {\normalfont\huge\mdseries\raggedleft}
+  {\thechapter}
+  {1ex}
+  {\Huge\MakeUppercase}
+
+\clearpage
+\include{chapters/introduction}
+%\include{chapters/chapter2}
+%\include{chapters/chapter3}
+%\include{chapters/chapter4}
+%\include{chapters/chapter5}
+\printbibliography
+
+\end{document}

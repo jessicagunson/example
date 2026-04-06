@@ -1,0 +1,159 @@
+% this is where you put all of your settings and functions
+% i got really fiddly with mine so some of these are unnecessary 
+
+\usepackage[margin=1in,includefoot,letterpaper]{geometry}
+\usepackage{setspace}
+
+\doublespacing
+\setlength{\parskip}{0pt}
+\setlength{\parindent}{2em}
+\usepackage{caption}
+\usepackage{microtype}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{newpxtext,newpxmath}
+\usepackage{titlesec}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\setlength{\emergencystretch}{3em}
+
+% configure spacing after headings 
+\titlespacing*{\section}{0pt}{18pt}{8pt}
+\titlespacing*{\subsection}{0pt}{12pt}{6pt}
+\titlespacing*{\subsubsection}{0pt}{8pt}{4pt}
+
+% configure captions
+\captionsetup{
+  font={small,stretch=1},
+  labelfont=bf,
+  textfont=normalfont,
+  labelsep=period,
+  justification=justified,
+  singlelinecheck=false,
+  skip=6pt
+}
+
+% configure space above and below figures 
+\setlength{\textfloatsep}{25pt plus 2pt minus 4pt}
+\setlength{\floatsep}{10pt}
+\setlength{\intextsep}{20pt}
+
+% configure citations
+\usepackage{hyperref}
+\usepackage[
+  backend=biber,
+  style=apa,
+  sorting=nyt,
+  maxcitenames=2,
+  mincitenames=1,
+  uniquename=false,
+  uniquelist=false
+]{biblatex}
+\AtEveryBibitem{%
+  \clearfield{month}%
+  \clearfield{day}%
+  \clearfield{urlday}%
+  \clearfield{urlmonth}%
+  \iffieldundef{year}
+    {}
+    {\clearfield{date}}
+}
+\DeclareLanguageMapping{english}{english-apa}
+\addbibresource{bib/references.bib}
+
+% for when you have a citation that also has handwritten text in it 
+% (eg., snakes = Snake, 2025; pigs = Pig, 2026). 
+\newcommand{\citeay}[1]{\citeauthor{#1},~\citeyear{#1}}
+\DefineBibliographyStrings{english}{
+  and = {and}
+}
+
+% remove page number from blank pages
+\makeatletter
+\def\cleardoublepage{%
+  \clearpage
+  \if@twoside
+    \ifodd\c@page
+    \else
+      \hbox{}
+      \thispagestyle{empty}
+      \newpage
+    \fi
+  \fi
+}
+\makeatother
+
+% configure table of contents
+\setcounter{tocdepth}{2}
+\setcounter{secnumdepth}{3}
+\usepackage{tocloft}
+
+\renewcommand{\cftfigfont}{\normalfont}
+\renewcommand{\cfttabfont}{\normalfont}
+\renewcommand{\cftfigpagefont}{\normalfont}
+\renewcommand{\cfttabpagefont}{\normalfont}
+\renewcommand{\cftdotsep}{1}
+
+% Add "Figure" and "Table" before numbers
+\renewcommand{\cftfigpresnum}{Figure~}
+\renewcommand{\cfttabpresnum}{Table~}
+\setlength{\cftfignumwidth}{5em}
+\setlength{\cfttabnumwidth}{4.5em}
+
+% create front matter pages 
+\newcommand{\frontmattertitle}[1]{%
+  \noindent\makebox[\textwidth][c]{\Large\mdseries\MakeUppercase{#1}}%
+  \par\vspace{1.25cm}
+}
+
+% create custom table of contents + figures + tables + appendices
+\makeatletter
+\newcommand{\customtableofcontents}{%
+  \cleardoublepage
+  \thispagestyle{plain}%
+  \frontmattertitle{TABLE OF CONTENTS}%
+  \@starttoc{toc}%
+}
+
+\newcommand{\customlistoftables}{%
+  \cleardoublepage
+  \thispagestyle{plain}%
+  \frontmattertitle{LIST OF TABLES}%
+  \@starttoc{lot}%
+}
+
+\newcommand{\customlistoffigures}{%
+  \cleardoublepage
+  \thispagestyle{plain}%
+  \frontmattertitle{LIST OF FIGURES}%
+  \@starttoc{lof}%
+}
+\makeatother
+
+% add dot leaders to table of contents
+\renewcommand{\cftdotsep}{1}
+\renewcommand{\cftchapleader}{\cftdotfill{\cftdotsep}}
+\renewcommand{\cftchappresnum}{}
+\renewcommand{\cftchapaftersnum}{\ }
+\setlength{\cftchapnumwidth}{1.6em}
+\renewcommand{\cftchapfont}{\mdseries}
+\renewcommand{\cftchappagefont}{\mdseries}
+\renewcommand{\cftsecfont}{\normalfont}
+\renewcommand{\cftsecpagefont}{\normalfont}
+\setlength{\cftsecindent}{2.2em}
+\setlength{\cftsecnumwidth}{2.4em}
+\setlength{\cftsubsecindent}{4.4em}
+\setlength{\cftsubsecnumwidth}{2.9em}
+\setlength{\cftbeforechapskip}{1pt}
+\setlength{\cftbeforesecskip}{0pt}
+\setlength{\cftbeforesubsecskip}{0pt}
+
+% configure title page
+\newcommand{\thesistitle}{Title}
+\newcommand{\thesisauthor}{Name}
+\newcommand{\thesisadvisor}{Advisor}
+\newcommand{\thesisdept}{Department of Anthropology}
+\newcommand{\gradmonth}{Month}
+\newcommand{\gradyear}{Year}
