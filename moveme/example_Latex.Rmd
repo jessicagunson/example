@@ -3,6 +3,9 @@ title: "Example"
 output: html_document
 date: "2026-03-27"
 ---
+
+# Move the folder "moveme" out of the "example" folder and keep it elsewhere
+
 # Setup
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
@@ -202,7 +205,8 @@ make_model_gt <- function(model,
 ```{r data}
 # check here() to find your current directory
 # assumes you have a folder in the root directory called 'data' with a file called example.csv inside that folder
-df_example <- fread(here("data", "example.csv"))
+here()
+df_example <- fread(file.path(diss_dir, "moveme", "example.csv"))
 ```
 
 # Figure & Table outputs
