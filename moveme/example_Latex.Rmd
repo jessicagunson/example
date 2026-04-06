@@ -184,9 +184,9 @@ make_model_gt <- function(model,
   diss_dir <- path_expand("~/Documents/example")
 
 # subdirectories to keep everything organized
-  fig_dir <- path(diss_dir, "figures", "example")
-  tab_dir <- path(diss_dir, "tables", "example")
-  res_dir <- path(diss_dir, "results", "example")
+  fig_dir <- path(diss_dir, "figures")
+  tab_dir <- path(diss_dir, "tables")
+  res_dir <- path(diss_dir, "results")
 
 # for supplementary figures and tables
   supp_fig_dir <- path(fig_dir, "supp")
